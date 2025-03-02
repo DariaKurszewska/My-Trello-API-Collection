@@ -1,0 +1,374 @@
+{
+	"info": {
+		"_postman_id": "e1b09af7-c17c-49a9-94d3-a626d963f501",
+		"name": "Core_Trello_API_Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35181045"
+	},
+	"item": [
+		{
+			"name": "Pre-Test Setup-Create Board",
+			"item": [
+				{
+					"name": "Create New Board",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder - Pre-Test Setup Create Board\r",
+									"console.log(\"Starting folder execution - Pre-Test Setup Create Board...\");\r",
+									"\r",
+									"// Step 1: Check for base_url environment variable\r",
+									"if (!pm.environment.get(\"base_url\")) {\r",
+									"    console.log(\"Step 1: Error: base_url is not set\");\r",
+									"} else {\r",
+									"    console.log(\"Step 1: base_url: \" + pm.environment.get(\"base_url\"));\r",
+									"}\r",
+									"\r",
+									"// Step 2: Check for key environment variable\r",
+									"if (!pm.environment.get(\"key\")) {\r",
+									"    console.log(\"Step 2: Error: key is not set\");\r",
+									"} else {\r",
+									"    console.log(\"Step 2: Pass: key is set\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Check for token environment variable\r",
+									"if (!pm.environment.get(\"token\")) {\r",
+									"    console.log(\"Step 3: Error: token is not set\");\r",
+									"} else {\r",
+									"    console.log(\"Step 3: Pass: token is set\");\r",
+									"}\r",
+									"\r",
+									"// Step 4: Generate a random name for the new board with length between 1 and 16384 characters\r",
+									"function generateRandomName(minLength, maxLength) {\r",
+									"    const randomStr = Math.random().toString(36).substr(2, maxLength); // Generating random string\r",
+									"    return randomStr.length >= minLength ? randomStr.substr(0, maxLength) : generateRandomName(minLength, maxLength); // Ensure length is within the limits\r",
+									"}\r",
+									"\r",
+									"const randomBoardName = generateRandomName(1, 16384);\r",
+									"pm.globals.set('randomBoardName', randomBoardName); \r",
+									"console.log(\"Step 4: Random name generated and set successfully: \" + randomBoardName);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"const board = pm.response.json();\r",
+									"console.log(\"Step 2: Parsed response as JSON:\", board);\r",
+									"\r",
+									"// Step 3: Check if the response contains an 'id' field\r",
+									"pm.test(\"Verify the response contains a board ID\", function () {\r",
+									"    pm.expect(board).to.have.property(\"id\");\r",
+									"    console.log(\"Step 3: Response contains boardId:\", board.id);\r",
+									"});\r",
+									"\r",
+									"// Step 4: Set the board id as a global variable if it exists\r",
+									"if (board.id) {\r",
+									"    pm.globals.set(\"boardId\", board.id);\r",
+									"    console.log(\"Step 4: boardId set:\", board.id);\r",
+									"} else {\r",
+									"    console.log(\"Step 4: No 'id' found in the board response.\");\r",
+									"}\r",
+									"\r",
+									"// Step 5: Log the response time for additional debugging\r",
+									"console.log(\"Step 5: Response time: \" + pm.response.responseTime + \"ms\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomBoardName}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/1/boards/?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								""
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get New Board By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Verify the response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is: \" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object and retrieve the board name\r",
+									"let response = pm.response.json();\r",
+									"let boardName = response.name;  // Get the name of the board from the response\r",
+									"let generatedBoardName = pm.globals.get(\"randomBoardName\");  // Get the previously generated board name\r",
+									"console.log(\"Step 2: Generated Board Name: \" + generatedBoardName);\r",
+									"console.log(\"Step 2: Received Board Name from Response: \" + boardName);\r",
+									"\r",
+									"// Step 3: Check if the board name from the response matches the generated name\r",
+									"pm.test(\"The board name from the response matches the given name.\", function () {\r",
+									"    pm.expect(boardName).to.eql(generatedBoardName, \r",
+									"        `Board name check passed: Expected name: ${generatedBoardName}, Received name: ${boardName}`);\r",
+									"});\r",
+									"\r",
+									"console.log(`Step 3: Generated board name: ${generatedBoardName}`);\r",
+									"console.log(`Step 3: Received board name: ${boardName}`);\r",
+									"\r",
+									"// Step 4: Log the response time for additional debugging\r",
+									"console.log(\"Step 4: Response time: \" + pm.response.responseTime + \"ms\");\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All List On New Board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Verify the response status code\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is: \" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object.\r",
+									"const response = pm.response.json();\r",
+									"console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"\r",
+									"// Step 3: Loop through each list in the response.\r",
+									"let lists = [];\r",
+									"response.forEach((list, index) => {\r",
+									"    lists.push({\r",
+									"        id: list.id,\r",
+									"        name: list.name,\r",
+									"        pos: list.pos\r",
+									"    });\r",
+									"    console.log(`Step 3: List ${index + 1} ID: ${list.id}, Name: ${list.name}, Position: ${list.pos}`);\r",
+									"});\r",
+									"\r",
+									"// Step 4: Set the updatedList array as a global variable\r",
+									"pm.globals.set(\"boardLists\", JSON.stringify(lists));\r",
+									"console.log(\"Step 4: Board Lists:\", lists);\r",
+									"\r",
+									"// Step 5: Log the number of lists found.\r",
+									"let listLength = response.length;\r",
+									"console.log(`Step 5: Total number of lists found: ${listLength}`);\r",
+									"\r",
+									"// Step 6: Test if the response contains the correct list names in the correct order.\r",
+									"pm.test(\"The board contains lists 'To Do', 'Doing', and 'Done' in the correct order, as expected.\", function () {\r",
+									"    const expectedListNames = [\"To Do\", \"Doing\", \"Done\"];\r",
+									"    let listNames = lists.map(list => list.name);\r",
+									"    \r",
+									"    pm.expect(listNames).to.eql(expectedListNames, `The lists should contain 'To Do', 'Doing', and 'Done' in the correct order. Expected: ${expectedListNames}, but got: ${listNames}`);\r",
+									"    \r",
+									"    // Log the expected and actual list names\r",
+									"    console.log(\"Step 6: Expected list names: \" + expectedListNames);\r",
+									"    console.log(\"Step 6: Received list names: \" + listNames);\r",
+									"});\r",
+									"\r",
+									"// Step 7: Log response time.\r",
+									"console.log(\"Step 7: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}/lists?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}",
+								"lists"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Cards On New Board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function() {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Response status code is: \" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Initialize cardsData as an empty array and process cards from the board response\r",
+									"let cardsData = [];\r",
+									"let boardResponse = pm.response.json(); // Assuming the response is JSON\r",
+									"let cardCount = 0;\r",
+									"\r",
+									"if (Array.isArray(boardResponse) && boardResponse.length > 0) {\r",
+									"    cardCount = boardResponse.length;\r",
+									"    console.log(`Step 2: Total number of cards found: ${cardCount}`);\r",
+									"    boardResponse.forEach(card => {\r",
+									"        // Collect only required data for each card\r",
+									"        cardsData.push({\r",
+									"            id: card.id,\r",
+									"            name: card.name,\r",
+									"            position: card.pos, // Assuming 'pos' is the position of the card\r",
+									"            listId: card.idList // Assuming 'idList' is the ID of the list the card belongs to\r",
+									"        });\r",
+									"    });\r",
+									"} else {\r",
+									"    // Log if no cards were found on the board\r",
+									"    console.log(\"Step 2: No cards found on the board.\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Test to verify the board has 0 cards and indicate this was expected\r",
+									"pm.test(\"The board has no cards, as expected.\", function() {\r",
+									"        pm.expect(cardCount).to.equal(0, \r",
+									"        `Expected card count: 0, but got: ${cardCount}`);\r",
+									"});\r",
+									"\r",
+									"console.log(`Step 3: Expected number of cards: 0`); \r",
+									"console.log(`Step 3: Actual number of cards found: ${cardCount}`);\r",
+									"\r",
+									"// Step 4: Set updated cardsData as a global variable\r",
+									"pm.globals.set(\"cardsData\", JSON.stringify(cardsData));\r",
+									"console.log(\"Step 4: cardsData set:\", pm.globals.get(\"cardsData\"));\r",
+									"\r",
+									"// Step 5: Log response time for diagnostic purposes\r",
+									"console.log(\"Step 5: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}/cards?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Description:**\n\nIn this test folder, the environment is prepared by interacting with Trello's API to create a new board and verify its initial state. The goal is to ensure the newly created board has the correct structure, including lists (\"To Do\", \"Doing\", \"Done\") and no cards, and that it matches the expected state for further testing.\n\nThe tests will:\n\n- Create a new Trello board with a randomly generated name.\n    \n- Fetch and verify the board's name and lists (\"To Do\", \"Doing\", \"Done\").\n    \n- Ensure the board is empty (no cards are present).\n    \n\n**Environment Variables to Set:**  \nEnsure the following environment variables are set:\n\n- `base_url`: The base URL for the Trello API.\n    \n- `key`: Your Trello API key.\n    \n- `token`: Your Trello API token.\n    \n\n**Request Steps:**\n\n### **POST/Create New Board - Create a New Trello Board**\n\nThis request creates a new board in Trello with a randomly generated name. This board will serve as the foundation for subsequent tests.\n\nIn this request:\n\n- A random name for the new board is generated and stored in the variable `randomName`.\n    \n- The board ID is captured from the response for use in future requests.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures that the API request was successful and the board was created correctly.\n    \n- **Verify the response contains a valid board ID**: Ensures that the response returns an ID for the newly created board. This ID will be used in later steps to interact with the board.\n    \n\n### **GET/Get New Board By ID - Retrieve Newly Created Board by ID**\n\nThis request fetches the newly created board by its ID and verifies that the board’s name matches the one generated earlier.\n\nIn this request:\n\n- The newly created board is retrieved using its board ID.\n    \n- The board name from the response is checked to confirm it matches the one generated in the `randomName` variable.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the board can be successfully retrieved by its ID.\n    \n- **Verify the board name matches the generated random name**: Confirms that the board was created with the correct name.\n    \n\n### **GET/Get All Lists on New Board - Retrieve All Lists from the Newly Created Board**\n\nThis request fetches all the lists on the newly created board using its board ID. The goal is to verify that the default lists (\"To Do\", \"Doing\", \"Done\") are present and in the correct order.\n\nIn this request:\n\n- All lists are retrieved from the newly created board using its board ID.\n    \n- It is verified that the lists contain \"To Do\", \"Doing\", and \"Done\" in the correct order.\n    \n- The list information is stored in the global variable `boardLists` for future reference.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the API request was successful and the lists were retrieved.\n    \n- **Verify the lists contain 'To Do', 'Doing', and 'Done' in the correct order**: Checks that the lists returned from the API match the expected names and order.\n    \n\n### **GET/Get All Cards on New Board - Retrieve All Cards from the Newly Created Board**\n\nThis request fetches all the cards from the newly created board using its board ID. The goal is to verify that no cards are present on the board, ensuring it is empty and ready for further testing.\n\nIn this request:\n\n- All cards are retrieved from the newly created board using its board ID.\n    \n- It is checked that there are no cards on the board (the response should be empty).\n    \n- The card information is stored in the global variable `boardCards`, which will be empty for a newly created board.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the API request was successful and the cards were retrieved.\n    \n- **Verify the board has no cards**: Ensures the board is empty, as expected for a newly created board."
+		}
+	]
+}
