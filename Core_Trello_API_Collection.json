@@ -369,6 +369,121 @@
 				}
 			],
 			"description": "**Description:**\n\nIn this test folder, the environment is prepared by interacting with Trello's API to create a new board and verify its initial state. The goal is to ensure the newly created board has the correct structure, including lists (\"To Do\", \"Doing\", \"Done\") and no cards, and that it matches the expected state for further testing.\n\nThe tests will:\n\n- Create a new Trello board with a randomly generated name.\n    \n- Fetch and verify the board's name and lists (\"To Do\", \"Doing\", \"Done\").\n    \n- Ensure the board is empty (no cards are present).\n    \n\n**Environment Variables to Set:**  \nEnsure the following environment variables are set:\n\n- `base_url`: The base URL for the Trello API.\n    \n- `key`: Your Trello API key.\n    \n- `token`: Your Trello API token.\n    \n\n**Request Steps:**\n\n### **POST/Create New Board - Create a New Trello Board**\n\nThis request creates a new board in Trello with a randomly generated name. This board will serve as the foundation for subsequent tests.\n\nIn this request:\n\n- A random name for the new board is generated and stored in the variable `randomName`.\n    \n- The board ID is captured from the response for use in future requests.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures that the API request was successful and the board was created correctly.\n    \n- **Verify the response contains a valid board ID**: Ensures that the response returns an ID for the newly created board. This ID will be used in later steps to interact with the board.\n    \n\n### **GET/Get New Board By ID - Retrieve Newly Created Board by ID**\n\nThis request fetches the newly created board by its ID and verifies that the board’s name matches the one generated earlier.\n\nIn this request:\n\n- The newly created board is retrieved using its board ID.\n    \n- The board name from the response is checked to confirm it matches the one generated in the `randomName` variable.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the board can be successfully retrieved by its ID.\n    \n- **Verify the board name matches the generated random name**: Confirms that the board was created with the correct name.\n    \n\n### **GET/Get All Lists on New Board - Retrieve All Lists from the Newly Created Board**\n\nThis request fetches all the lists on the newly created board using its board ID. The goal is to verify that the default lists (\"To Do\", \"Doing\", \"Done\") are present and in the correct order.\n\nIn this request:\n\n- All lists are retrieved from the newly created board using its board ID.\n    \n- It is verified that the lists contain \"To Do\", \"Doing\", and \"Done\" in the correct order.\n    \n- The list information is stored in the global variable `boardLists` for future reference.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the API request was successful and the lists were retrieved.\n    \n- **Verify the lists contain 'To Do', 'Doing', and 'Done' in the correct order**: Checks that the lists returned from the API match the expected names and order.\n    \n\n### **GET/Get All Cards on New Board - Retrieve All Cards from the Newly Created Board**\n\nThis request fetches all the cards from the newly created board using its board ID. The goal is to verify that no cards are present on the board, ensuring it is empty and ready for further testing.\n\nIn this request:\n\n- All cards are retrieved from the newly created board using its board ID.\n    \n- It is checked that there are no cards on the board (the response should be empty).\n    \n- The card information is stored in the global variable `boardCards`, which will be empty for a newly created board.\n    \n\n**Tests:**\n\n- **Verify the response status code is 200**: Ensures the API request was successful and the cards were retrieved.\n    \n- **Verify the board has no cards**: Ensures the board is empty, as expected for a newly created board."
+		},
+		{
+			"name": "Post-Test Cleanup - Delete Board",
+			"item": [
+				{
+					"name": "Delete Board by Id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder - Post-Test Cleanup - Delete Board\r",
+									"console.log(\"Starting folder execution -Post-Test Cleanup - Delete Board...\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Log response time\r",
+									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deleted Board by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 404\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(404);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Log response time\r",
+									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Description:**\n\nIn this test folder, the environment is cleaned up by interacting with Trello's API to delete a board created during testing. The goal is to ensure the board is properly removed from the system and no longer exists, clearing up any test artifacts.\n\n**DEL / Delete Board by Id**\n\n#### **Description:**\n\nThis request deletes a Trello board using its stored ID, ensuring that the test environment is cleaned up after the tests have been executed.\n\n**Steps:**\n\n1. Send a request to delete the board using its ID.\n    \n\n**Tests:**\n\n- **Verify the response status is 200** – Confirms that the board was successfully deleted.\n    \n\n**GET / Get Deleted Board by Id**\n\n**Description:**\n\nThis request attempts to retrieve the board that was deleted, verifying that it no longer exists in the system.\n\n**Steps:**\n\n1. Send a request to fetch the deleted board by its ID.\n    \n\n**Tests:**\n\n- **Verify the response status is 404** – Confirms that the board cannot be retrieved, indicating it has been successfully deleted."
 		}
 	]
 }
