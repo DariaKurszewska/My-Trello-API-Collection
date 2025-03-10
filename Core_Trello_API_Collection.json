@@ -740,6 +740,187 @@
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the functionality of creating, retrieving, and validating lists on a Trello board using Trello's API.\n\n**Request Steps & Tests:**\n\n### **POST / Create A New List - Create a New List on the Board**\n\nThis request creates a new list on an existing Trello board. The list will have a randomly generated name and be positioned either at the top or bottom of the board.\n\nIn this request:\n\n- A random name for the new list is generated and stored in the variable `randomListName`.\n    \n- A random position (\"top\" or \"bottom\") is assigned and stored in `randomListPosition`.\n    \n- The list is created on the specified board using the Trello API.\n    \n- Additionally, the variable `lists_folder_iteration_number` is checked to track how many iterations have been performed in the folder. This ensures the folder is iterated the correct number of times.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the list was created successfully.\n    \n- **Verify the response contains a valid list ID**: Confirms that the response contains a valid list ID, which is stored in the variable `getListId` for future use.\n    \n\n### **GET / Get New List By Id - Retrieve Newly Created List by ID**\n\nThis request retrieves the newly created list from Trello using its list ID. The goal is to verify that the list name matches the randomly generated name from the previous step.\n\nIn this request:\n\n- The list is fetched using the list ID stored in the variable `getListId`.\n    \n- The list's name is compared with the randomly generated name `randomListName` to ensure it matches.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request to fetch the list was successful.\n    \n- **Verify the list name matches the expected name**: Confirms that the list's name returned in the response matches the randomly generated name stored in `randomListName`.\n    \n\n### **GET / Get All Lists After Create New List - Retrieve All Lists After New List Creation**\n\nThis request retrieves all lists on the board after creating a new list. This helps verify that the new list has been added successfully and that the board's list structure is as expected.\n\nIn this request:\n\n- The response is parsed and checked to ensure it contains a list of board lists.\n    \n- The updated list data (including ID, name, and position) is logged and stored for future reference.\n    \n- The position of the newly created list is checked to ensure it matches the expected position (top or bottom).\n    \n- A flag is used to reset the iteration counter (`lists_folder_iteration_number`) after the iteration is complete, allowing for the process to start over.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request to fetch all lists was successful.\n    \n- **Verify that the correct number of lists is returned**: Confirms that only one list has been added to the board.\n    \n- **Verify the position of the new list**: Ensures that the new list is placed in the expected position (top or bottom) on the board."
 		},
 		{
+			"name": "Update Name Of List",
+			"item": [
+				{
+					"name": "Update List Name",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder -  Update Name Of List\r",
+									"console.log(\"Starting folder execution - Update Name Of List...\");\r",
+									"\r",
+									"// Step 1: Generate and store a random name for the updated list\r",
+									"function generateRandomName(minLength, maxLength) {\r",
+									"    const randomStr = Math.random().toString(36).substr(2, maxLength); // Generating random string\r",
+									"    return randomStr.length >= minLength ? randomStr.substr(0, maxLength) : generateRandomName(minLength, maxLength); // Ensure length is within the limits\r",
+									"}\r",
+									"\r",
+									"const randomUpdatedListName = generateRandomName(1, 16384);\r",
+									"pm.globals.set('randomUpdatedListName', randomUpdatedListName); \r",
+									"console.log(\"Step 1: Random list name generated and set successfully: \" + randomUpdatedListName);\r",
+									"\r",
+									"// Step 2: Get the updatedBoardLists from globals and parse it back to an array of objects\r",
+									"let updatedBoardListsString = pm.globals.get(\"updatedBoardLists\");\r",
+									"let updatedBoardLists = JSON.parse(updatedBoardListsString);\r",
+									"\r",
+									"console.log(\"Step 2: Updated board lists:\", updatedBoardLists);\r",
+									"\r",
+									"// Step 3: Generate a random index to get the random list Id\r",
+									"function randomInt(min, max) {\r",
+									"    return Math.floor(Math.random() * (max - min + 1) + min);\r",
+									"}\r",
+									"\r",
+									"const randomIndex = randomInt(0, updatedBoardLists.length - 1);\r",
+									"console.log(\"Step 3: Generated random index:\", randomIndex);\r",
+									"const randomListId = updatedBoardLists[randomIndex].id;\r",
+									"console.log(\"Step 3: Random list ID:\", randomListId);\r",
+									"\r",
+									"// Step 4: Save list id and name as global variable \r",
+									"pm.globals.set(\"randomList\", randomListId.toString());\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"//Step 2: Verify the list name has been updated\r",
+									"const randomUpdatedListName = pm.globals.get(\"randomUpdatedListName\");\r",
+									"\r",
+									"pm.test(`The list name has been updated to \"${randomUpdatedListName}, as expected`, function () {\r",
+									"       const responseData = pm.response.json();\r",
+									"       pm.expect(responseData.name).to.equal(randomUpdatedListName);\r",
+									"  \r",
+									"    console.log(`Step 2: The list name has been updated to \"${responseData.name}\".`);\r",
+									"});\r",
+									"\r",
+									"// Step 3: Log response time\r",
+									"console.log(\"Step 3: Response time:\", pm.response.responseTime + \"ms\");\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {}
+						},
+						"url": {
+							"raw": "{{base_url}}/1/lists/{{randomList}}?key={{key}}&token={{token}}&name={{randomUpdatedListName}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"lists",
+								"{{randomList}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "name",
+									"value": "{{randomUpdatedListName}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Updated List By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"//Step 2: Verify the list name has been updated\r",
+									"const randomUpdatedListName = pm.globals.get(\"randomUpdatedListName\");\r",
+									"\r",
+									"pm.test(`The list name has been updated to ${randomUpdatedListName}, as expected`, function () {\r",
+									"       const responseData = pm.response.json();\r",
+									"       pm.expect(responseData.name).to.equal(randomUpdatedListName);\r",
+									"  \r",
+									"    console.log(`Step 2: The list name has been updated to \"${responseData.name}\".`);\r",
+									"});\r",
+									"\r",
+									"// Step 3: Log response time\r",
+									"console.log(\"Step 3: Response time:\", pm.response.responseTime + \"ms\");\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/lists/{{randomList}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"lists",
+								"{{randomList}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Description:**\n\nIn this folder, the functionality of updating the name of a list on a Trello board is tested and the change is verified through a follow-up request.\n\n**Request Steps & Tests:**\n\n### **PUT / Update Name Of List - Update the Name of a List**\n\nThis request updates the name of a randomly selected list on an existing Trello board. A new name is generated and assigned to ensure the update is applied successfully.\n\nIn this request:\n\n- A random list is selected from the existing lists stored in `updatedBoardLists`.\n    \n- A new random name is generated and stored in the variable `updatedRandomName`.\n    \n- The selected list by Id storred in `getListId` updated with the new name using the Trello API.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the update request was successful.\n    \n\n### **GET / Get Updated List By Id - Retrieve Updated List by ID**\n\nThis request retrieves the updated list by its ID to verify that the list's name has been successfully updated.\n\nIn this request:\n\n- The list is retrieved using its ID (`getListId`), which was set earlier when the list was updated.\n    \n- The updated list’s name is verified by comparing it with the `updatedRandomName` variable, which holds the new name that was assigned.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request was successful and the response status code is 200, confirming that the updated list details are retrieved correctly.\n    \n- **Verify the list name matches** **`updatedRandomName`**: Confirms that the list name returned in the response matches the expected new name (`updatedRandomName`), indicating the update was applied successfully."
+		},
+		{
 			"name": "Post-Test Cleanup - Delete Board",
 			"item": [
 				{
