@@ -928,6 +928,7 @@
 									"// Step 1: Get the updatedBoardLists from globals and parse it back to an array of objects\r",
 									"let updatedBoardListsString = pm.globals.get(\"updatedBoardLists\");\r",
 									"let updatedBoardLists = JSON.parse(updatedBoardListsString);\r",
+
 									"\r",
 									"console.log(\"Step 1: Updated board lists:\", updatedBoardLists);\r",
 									"\r",
@@ -935,11 +936,12 @@
 									"function randomInt(min, max) {\r",
 									"    return Math.floor(Math.random() * (max - min + 1) + min);\r",
 									"}\r",
-									"\r",
+
 									"const randomIndex = randomInt(0, updatedBoardLists.length - 1);\r",
 									"console.log(\"Step 3: Generated random index:\", randomIndex);\r",
 									"const randomArchiveListId = updatedBoardLists[randomIndex].id;\r",
 									"console.log(\"Step 3: Random list ID:\", randomArchiveListId);\r",
+
 									"\r",
 									"// Step 4: Save list id and name as global variable \r",
 									"pm.globals.set(\"randomArchiveListId\", randomArchiveListId.toString());\r",
@@ -960,7 +962,8 @@
 									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
 									"});\r",
 									"\r",
-									"// Step 2: Log response time\r",
+
+                  "// Step 2: Log response time\r",
 									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");\r",
 									""
 								],
@@ -1057,6 +1060,7 @@
 								"1",
 								"lists",
 								"{{randomArchiveListId}}"
+
 							],
 							"query": [
 								{
@@ -1190,9 +1194,110 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get All List On Board After Archive List",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let response;\r",
+									"try {\r",
+									"    response = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Check if the response contains a list\r",
+									"if (Array.isArray(response)) {\r",
+									"    console.log(\"Step 3: Response contains a list with\", response.length, \"items.\");\r",
+									"} else {\r",
+									"    console.error(\"Step 3: Response does not contain a list.\");\r",
+									"}\r",
+									"\r",
+									"// Step 4: Loop through each list in the response and collect relevant data\r",
+									"let updatedList = [];\r",
+									"response.forEach((list, index) => {\r",
+									"    updatedList.push({\r",
+									"        id: list.id,\r",
+									"        name: list.name,\r",
+									"        pos: list.pos\r",
+									"    });\r",
+									"    console.log(`Step 4: List ${index + 1} ID: ${list.id}, Name: ${list.name}, Position: ${list.pos}`);\r",
+									"});\r",
+									"\r",
+									"// Step 5: Set the updatedList array as a global variable (this is the updated state after archiving)\r",
+									"pm.globals.set(\"updatedArchivedBoardLists\", JSON.stringify(updatedList));\r",
+									"console.log(\"Step 5: Updated Archived Board Lists:\", updatedList);\r",
+									"\r",
+									"// Step 6: Retrieve the previous list state and the newly updated state\r",
+									"let updatedArchivedBoardLists = pm.globals.get(\"updatedArchivedBoardLists\");\r",
+									"let updatedBoardLists = pm.globals.get(\"updatedBoardLists\");\r",
+									"\r",
+									"// Convert JSON strings to JavaScript arrays (if necessary)\r",
+									"updatedArchivedBoardLists = JSON.parse(updatedArchivedBoardLists);\r",
+									"updatedBoardLists = JSON.parse(updatedBoardLists);\r",
+									"\r",
+									"// Log the values of both variables to ensure they are arrays\r",
+									"console.log(\"Step 6: updatedArchivedBoardLists:\", updatedArchivedBoardLists);\r",
+									"console.log(\"Step 6: updatedBoardLists:\", updatedBoardLists);\r",
+									"\r",
+									"// Step 7: Now compare the lengths of the arrays to ensure one list was archived\r",
+									"pm.test(\"Only one list was archived, as expected\", function () {\r",
+									"    console.log(`Step 7: Total number of lists found in updatedArchivedBoardLists: ${updatedArchivedBoardLists.length}`);\r",
+									"    console.log(`Step 7: Total number of lists found in updatedBoardLists: ${updatedBoardLists.length}`);\r",
+									"    \r",
+									"    // Expecting the updated archived board lists to be one item shorter than the original board lists\r",
+									"    pm.expect(updatedArchivedBoardLists.length).to.equal(updatedBoardLists.length - 1);\r",
+									"});\r",
+									"\r",
+									"// Step 8: Update the updatedBoardLists variable with updatedArchivedBoardLists and save it in global variables\r",
+									"pm.globals.set(\"updatedBoardLists\", JSON.stringify(updatedArchivedBoardLists));\r",
+									"console.log(\"Step 8: The 'updatedBoardLists' variable has been updated with the following lists:\");\r",
+									"console.log(updatedArchivedBoardLists);\r",
+									"\r",
+									"// Step 9: Log response time for diagnostic purposes\r",
+									"console.log(\"Step 9: Response time: \" + pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
 				}
 			],
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the functionality of archiving lists on a Trello board using Trello's API.\n\n**Request Steps & Test:**\n\n**PUT / Archive List On Board - Archive a Randomly Selected List**\n\nThis request archives a randomly selected list on an existing Trello board. The request marks the list as archived, and its ID is stored for further validation.\n\nIn this request:\n\n- A random list is selected from the existing lists stored in `updatedBoardLists`.\n    \n- The selected list is updated using the Trello API to set `closed: true`.\n    \n- The archived list’s ID is stored in the variable `randomArchiveListId` for use in subsequent tests.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the archive request was successful.\n    \n\n**GET / Get Archived List By Id - Retrieve Archived List By ID**\n\nThis request retrieves a previously archived list from an existing Trello board. It verifies that the list has been successfully archived, using the stored ID for validation.\n\nIn this request:\n\n- A previously archived list is retrieved using its ID stored in `randomArchiveListId`.\n    \n- The list is verified to be correctly marked as archived.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request was successful.\n    \n- **Verify the list is archived (****`closed: true`****)**: Confirms that the list is no longer active.\n    \n\n**GET / Get All Lists On Board After Archive List - Verify Board Lists After Archiving**\n\nThis request retrieves all active lists on an existing Trello board after archiving a list. It ensures that the archived list is no longer present in the active lists.\n\nIn this request:\n\n- The updated state of the board is retrieved after archiving a list.\n    \n- The response, containing all active (non-archived) lists on the board, is stored in `updatedArchivedBoardLists` for further validation.\n    \n- The previous state (`updatedBoardLists`) is compared to confirm that one list has been removed.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request was successful.\n    \n- **Verify one list was archived**: Checks that the new list count is exactly one less than before archiving."
+
 		},
 		{
 			"name": "Create 5 Cards",
@@ -1519,6 +1624,7 @@
 				}
 			],
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the functionality of creating and verifying new cards on a Trello board using Trello's API.\n\n**Request Steps & Tests:**\n\n**1\\. POST / Create New Card - Create a New Card in a Randomly Selected List**\n\nThis request creates a new card on a randomly selected list within an existing Trello board. The card is assigned a randomly generated name and position, and its ID is stored for further validation.\n\n_In this request:_\n\n- A random name for the new card is generated and stored in the variable `randomCardName`.\n    \n- A random position (`top` or `bottom`) is selected and stored in `randomCardPosition`.\n    \n- A random list is selected from the existing lists on the board (stored in `updatedBoardLists`), and the card is created in that list.\n    \n- The card's ID is stored in the variable `getCardId` for future validation.\n    \n- The collection variable `cards_folder_iteration_number` is checked to determine the number of iterations to perform for creating cards.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the card creation request was successful.\n    \n- **Verify the response contains a valid card ID:** Confirms that the response contains a valid card ID, which will be stored for future reference.\n    \n\n**2\\. GET / Get New Card By Id - Retrieve a Card by its ID**\n\nThis request retrieves a specific card from a Trello board using its ID to verify its details, including the card's name and the list it belongs to. The response is compared against the expected values to ensure the card was created correctly.\n\n_In this request:_\n\n- The ID of the newly created card (stored in the variable `getCardId`) is used to fetch the card’s details from Trello.\n    \n- The card's name is checked to ensure it matches the randomly generated name stored in `randomCardName`.\n    \n- The `idList` value from the response is compared to `randomListIdCard` to verify that the card was placed in the correct list.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the request to retrieve the card was successful.\n    \n- **Verify the card name matches the expected name:** Confirms that the card name in the response matches the randomly generated name used during card creation.\n    \n- **Verify the card has been added to the correct list:** Ensures that the card was added to the expected list, as indicated by the `idList` field in the response.\n    \n\n**3\\. GET / Get All Cards On Board After Created Card - Retrieve All Cards on a Trello Board**\n\nThis request retrieves all cards from a specified Trello board to verify the addition of a newly created card. By comparing the current list of cards with the previously stored list, it ensures that the new card has been successfully added.\n\n_In this request:_\n\n- The Trello board ID is used to fetch all cards associated with that board.\n    \n- The response is parsed to extract relevant details of each card, such as `id`, `name`, `pos`, and `idList`.\n    \n- The current list of cards (`updatedCards`) is compared to the previously stored list (`cardsData`) to determine if a new card has been added.\n    \n- The collection variable `cards_folder_iteration_number` is checked to determine if additional iterations are needed. If the iteration count is greater than 0, the next request is set to 'Create A New Card' to continue the process.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the request to retrieve all cards was successful.\n    \n- **Verify one card was added, as expected:** Compares the number of cards before and after the addition to ensure that exactly one new card has been added.\n    \n- **Verify the new card's position is as expected:** Checks that the newly added card's position (`pos`) aligns with the specified `randomCardPosition` (e.g., \"top\" or \"bottom\") within its list."
+
 		},
 		{
 			"name": "Post-Test Cleanup - Delete Board",
