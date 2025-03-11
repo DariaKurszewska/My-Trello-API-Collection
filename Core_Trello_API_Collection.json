@@ -397,11 +397,7 @@
 									"    // Decrement the iteration count by 1\r",
 									"    pm.collectionVariables.set('lists_folder_iteration_number', listsFolderIterationsCount - 1);\r",
 									"    console.log(\"Step 1: Iteration count decreased. Remaining iterations: \" + (listsFolderIterationsCount - 1));\r",
-									"} else {\r",
-									"    // If the iteration count is 0, skip to the next request outside the folder\r",
-									"    pm.collectionVariables.set('lists_folder_iteration_number', 5); // Reset the count for future runs if needed\r",
-									"    console.log(\"Step 1: Iteration count is 0. Resetting to 5.\");\r",
-									"}\r",
+									"} \r",
 									"\r",
 									"// Step 2: Generate and store a random name for the new list\r",
 									"function generateRandomName(minLength, maxLength) {\r",
@@ -1171,13 +1167,358 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": ""
+							"raw": "{{base_url}}/1/boards/{{boardId}}/lists?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}",
+								"lists"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
 						}
 					},
 					"response": []
 				}
 			],
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the functionality of archiving lists on a Trello board using Trello's API.\n\n**Request Steps & Test:**\n\n**PUT / Archive List On Board - Archive a Randomly Selected List**\n\nThis request archives a randomly selected list on an existing Trello board. The request marks the list as archived, and its ID is stored for further validation.\n\nIn this request:\n\n- A random list is selected from the existing lists stored in `updatedBoardLists`.\n    \n- The selected list is updated using the Trello API to set `closed: true`.\n    \n- The archived list’s ID is stored in the variable `randomArchiveListId` for use in subsequent tests.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the archive request was successful.\n    \n\n**GET / Get Archived List By Id - Retrieve Archived List By ID**\n\nThis request retrieves a previously archived list from an existing Trello board. It verifies that the list has been successfully archived, using the stored ID for validation.\n\nIn this request:\n\n- A previously archived list is retrieved using its ID stored in `randomArchiveListId`.\n    \n- The list is verified to be correctly marked as archived.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request was successful.\n    \n- **Verify the list is archived (****`closed: true`****)**: Confirms that the list is no longer active.\n    \n\n**GET / Get All Lists On Board After Archive List - Verify Board Lists After Archiving**\n\nThis request retrieves all active lists on an existing Trello board after archiving a list. It ensures that the archived list is no longer present in the active lists.\n\nIn this request:\n\n- The updated state of the board is retrieved after archiving a list.\n    \n- The response, containing all active (non-archived) lists on the board, is stored in `updatedArchivedBoardLists` for further validation.\n    \n- The previous state (`updatedBoardLists`) is compared to confirm that one list has been removed.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures the request was successful.\n    \n- **Verify one list was archived**: Checks that the new list count is exactly one less than before archiving."
+		},
+		{
+			"name": "Create 5 Cards",
+			"item": [
+				{
+					"name": "Create A New Card",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder - Create 5 Cards\r",
+									"console.log(\"Starting folder execution - Create 5 Cards...\");\r",
+									"\r",
+									"// Step 1: Manage the iteration count for the lists folder\r",
+									"let cardsFolderIterationsCount = pm.collectionVariables.get('cards_folder_iteration_number');\r",
+									"\r",
+									"if (cardsFolderIterationsCount > 0) {\r",
+									"    // Decrement the iteration count by 1\r",
+									"    pm.collectionVariables.set('cards_folder_iteration_number', cardsFolderIterationsCount - 1);\r",
+									"    console.log(\"Step 1: Iteration count decreased. Remaining iterations: \" + (cardsFolderIterationsCount - 1));\r",
+									"}\r",
+									"\r",
+									"// Step 2: Generate and store a random name for the new card\r",
+									"function generateRandomName(minLength, maxLength) {\r",
+									"    const prefix = \"TestCard\";  // Prefix that will always appear at the start\r",
+									"    const randomStr = Math.random().toString(36).substr(2, maxLength - prefix.length); // Generating random string after the prefix\r",
+									"\r",
+									"    return prefix + randomStr; // Combine prefix with the random string\r",
+									"}\r",
+									"\r",
+									"const randomCardName = generateRandomName(1, 25);  // 'TestCard' as the start, with the rest being random\r",
+									"pm.globals.set('randomCardName', randomCardName); \r",
+									"console.log(\"Step 2: Random card name generated and set successfully: \" + randomCardName);\r",
+									"\r",
+									"// Step 3: Generate and store a random position for the new card\r",
+									"const positions = ['top', 'bottom'];\r",
+									"const randomCardPosition = positions[Math.floor(Math.random() * positions.length)];\r",
+									"pm.globals.set('randomCardPosition', randomCardPosition);\r",
+									"console.log(\"Step 3: Random card position generated and set successfully: \" + randomCardPosition);\r",
+									"\r",
+									"// Step 4: Generate and store a random Id of the list the card should be created in\r",
+									"let updatedBoardListsString = pm.globals.get(\"updatedBoardLists\");\r",
+									"let updatedBoardLists = JSON.parse(updatedBoardListsString);\r",
+									"console.log(\"Step 4: Updated board lists:\", updatedBoardLists);\r",
+									"const randomIndex = Math.floor(Math.random() * updatedBoardLists.length);\r",
+									"console.log(\"Step 4: Generated random index:\", randomIndex);\r",
+									"const randomListIdCard = updatedBoardLists[randomIndex].id;\r",
+									"console.log(\"Step 5: Random list ID:\", randomListIdCard);\r",
+									"pm.globals.set('randomListIdCard', randomListIdCard);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let response;\r",
+									"try {\r",
+									"    response = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Ensure the response contains a valid card id\r",
+									"pm.test(\"Response contains a valid card id\", function () {\r",
+									"    pm.expect(response).to.be.an('object');\r",
+									"    pm.expect(response.id).to.be.a('string');\r",
+									"    console.log(\"Step 3: Response is an object and contains a valid card id:\", response.id);\r",
+									"});\r",
+									"\r",
+									"// Step 4: Set the getCardId global variable\r",
+									"if (response && response.id) {\r",
+									"    let getCardId = response.id.toString();\r",
+									"    pm.globals.set(\"getCardId\", getCardId); \r",
+									"    console.log(\"Step 4: Set global variable getCardId to\", getCardId);\r",
+									"} else {\r",
+									"    console.error(\"Step 4: Response does not contain a valid card id:\", response);\r",
+									"    pm.expect.fail(\"Step 4: Response does not contain a valid card id\");\r",
+									"}\r",
+									"\r",
+									"// Step 5: Log response time\r",
+									"console.log(\"Step 5: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomCardName}}\",\r\n  \"pos\": \"{{randomCardPosition}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/1/cards?idList={{randomListIdCard}}&key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "idList",
+									"value": "{{randomListIdCard}}"
+								},
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get New Card By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let createCardResponse;\r",
+									"try {\r",
+									"    createCardResponse = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", createCardResponse);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Check if the card name from the response matches the given name\r",
+									"pm.test(\"The card name from the response matches the given name\", function () {\r",
+									"    let expectedName = pm.globals.get('randomCardName');\r",
+									"    // Verify that the response name matches the expected name\r",
+									"    pm.expect(createCardResponse.name).to.equal(expectedName);\r",
+									"    console.log(`Step 3: Retrieved list name ${createCardResponse.name} matches expected name '${expectedName}'`);\r",
+									"});\r",
+									"\r",
+									"// Step 4: Ensure the response idList matches randomListIdCard\r",
+									"pm.test(\"The card has been added to the correct list, as expected\", function () {\r",
+									"    pm.expect(createCardResponse.idList.toString()).to.equal(pm.globals.get(\"randomListIdCard\"));\r",
+									"    console.log(\"Step 4: idList matches randomListIdCard\");\r",
+									"});\r",
+									"\r",
+									"// Step 5: Log response time\r",
+									"console.log(\"Step 5: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/cards/{{getCardId}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"cards",
+								"{{getCardId}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Cards On Board After Created Card",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\", pm.response.code);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let response;\r",
+									"try {\r",
+									"    response = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Check if the response contains an array of cards\r",
+									"if (Array.isArray(response)) {\r",
+									"    console.log(\"Step 3: Response contains\", response.length, \"cards.\");\r",
+									"    \r",
+									"    // Step 4: Collect relevant data from each card in the response\r",
+									"    let updatedCards = response.map((card, index) => ({\r",
+									"        id: card.id,\r",
+									"        name: card.name,\r",
+									"        pos: card.pos,\r",
+									"        listId: card.idList\r",
+									"    }));\r",
+									"\r",
+									"    updatedCards.forEach((card, index) => {\r",
+									"        console.log(`Step 4: Card ${index + 1} ID: ${card.id}, Name: ${card.name}, Position: ${card.pos}, ListId: ${card.listId}`);\r",
+									"    });\r",
+									"\r",
+									"    // Step 5: Retrieve the previous cards data from globals\r",
+									"    let previousCardsData = pm.globals.get(\"cardsData\");\r",
+									"    previousCardsData = previousCardsData ? JSON.parse(previousCardsData) : [];\r",
+									"\r",
+									"    // Step 6: Test to verify the number of cards after deletion\r",
+									"    pm.test(\"One card was added, as expected\", function () {\r",
+									"    console.log(`Step 6: Number of cards before operation: ${previousCardsData.length}`);\r",
+									"    console.log(`Step 6: Number of cards after operation: ${updatedCards.length}`);\r",
+									"\r",
+									"    if (previousCardsData.length === 0) {\r",
+									"        pm.expect(updatedCards.length).to.equal(1);\r",
+									"    } else {\r",
+									"        pm.expect(updatedCards.length).to.equal(previousCardsData.length + 1);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"    // Step 7: Update the global variable with the current cards data\r",
+									"    pm.globals.set(\"cardsData\", JSON.stringify(updatedCards));\r",
+									"    console.log(\"Step 7: Updated 'cardsData' global variable.\");\r",
+									"} else {\r",
+									"    console.error(\"Step 3: Response is not an array of cards:\", response);\r",
+									"}\r",
+									"\r",
+									"// Step 8: Log response time for diagnostic purposes\r",
+									"console.log(\"Step 8: Response time:\", pm.response.responseTime + \"ms\");\r",
+									"\r",
+									"/////////////\r",
+									"//Checks the iteration count for the \"cards\" folder, and if it's greater than 0, it repeats the first request; if it's 0, it moves to the next request.\r",
+									"let cards_folder_iteration_number_count = pm.collectionVariables.get('cards_folder_iteration_number');\r",
+									"\r",
+									"if (cards_folder_iteration_number_count > 0) {\r",
+									"    // Set the next request to the first request in the folder\r",
+									"    pm.execution.setNextRequest('Create A New Card');\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}/cards?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the functionality of creating and verifying new cards on a Trello board using Trello's API.\n\n**Request Steps & Tests:**\n\n**1\\. POST / Create New Card - Create a New Card in a Randomly Selected List**\n\nThis request creates a new card on a randomly selected list within an existing Trello board. The card is assigned a randomly generated name and position, and its ID is stored for further validation.\n\n_In this request:_\n\n- A random name for the new card is generated and stored in the variable `randomCardName`.\n    \n- A random position (`top` or `bottom`) is selected and stored in `randomCardPosition`.\n    \n- A random list is selected from the existing lists on the board (stored in `updatedBoardLists`), and the card is created in that list.\n    \n- The card's ID is stored in the variable `getCardId` for future validation.\n    \n- The collection variable `cards_folder_iteration_number` is checked to determine the number of iterations to perform for creating cards.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the card creation request was successful.\n    \n- **Verify the response contains a valid card ID:** Confirms that the response contains a valid card ID, which will be stored for future reference.\n    \n\n**2\\. GET / Get New Card By Id - Retrieve a Card by its ID**\n\nThis request retrieves a specific card from a Trello board using its ID to verify its details, including the card's name and the list it belongs to. The response is compared against the expected values to ensure the card was created correctly.\n\n_In this request:_\n\n- The ID of the newly created card (stored in the variable `getCardId`) is used to fetch the card’s details from Trello.\n    \n- The card's name is checked to ensure it matches the randomly generated name stored in `randomCardName`.\n    \n- The `idList` value from the response is compared to `randomListIdCard` to verify that the card was placed in the correct list.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the request to retrieve the card was successful.\n    \n- **Verify the card name matches the expected name:** Confirms that the card name in the response matches the randomly generated name used during card creation.\n    \n- **Verify the card has been added to the correct list:** Ensures that the card was added to the expected list, as indicated by the `idList` field in the response.\n    \n\n**3\\. GET / Get All Cards On Board After Created Card - Retrieve All Cards on a Trello Board**\n\nThis request retrieves all cards from a specified Trello board to verify the addition of a newly created card. By comparing the current list of cards with the previously stored list, it ensures that the new card has been successfully added.\n\n_In this request:_\n\n- The Trello board ID is used to fetch all cards associated with that board.\n    \n- The response is parsed to extract relevant details of each card, such as `id`, `name`, `pos`, and `idList`.\n    \n- The current list of cards (`updatedCards`) is compared to the previously stored list (`cardsData`) to determine if a new card has been added.\n    \n- The collection variable `cards_folder_iteration_number` is checked to determine if additional iterations are needed. If the iteration count is greater than 0, the next request is set to 'Create A New Card' to continue the process.\n    \n\n_Tests:_\n\n- **Verify the response status is 200:** Ensures the request to retrieve all cards was successful.\n    \n- **Verify one card was added, as expected:** Compares the number of cards before and after the addition to ensure that exactly one new card has been added.\n    \n- **Verify the new card's position is as expected:** Checks that the newly added card's position (`pos`) aligns with the specified `randomCardPosition` (e.g., \"top\" or \"bottom\") within its list."
 		},
 		{
 			"name": "Post-Test Cleanup - Delete Board",
@@ -1298,6 +1639,10 @@
 	"variable": [
 		{
 			"key": "lists_folder_iteration_number",
+			"value": "5"
+		},
+		{
+			"key": "cards_folder_iteration_number",
 			"value": "5"
 		}
 	]
