@@ -1884,7 +1884,6 @@
 									"\r",
 									"// Step 6: Log response time for diagnostic purposes\r",
 									"console.log(\"Step 6: Response time:\", pm.response.responseTime + \"ms\");\r",
-									"\r",
 									""
 								],
 								"type": "text/javascript",
@@ -1922,6 +1921,249 @@
 				}
 			],
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the deletion of a card from a Trello board and verify that the card has been removed successfully.\n\n**POST / Delete Card By ID**\n\n**Description:**\n\nThis request is designed to delete a card from a Trello board. A random card ID is selected from the list of cards stored in the `cardsData` variable, and this ID is used to delete the card. The ID is stored in the global variable `randomIdCardToDelete` for future verification.\n\n**Steps:**\n\n- A random card ID is selected from the list of cards stored in the `cardsData` variable.\n    \n- This ID is stored in the global variable `randomIdCardToDelete` for future verification.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures that the status code is 200, confirming the card was successfully deleted.\n    \n\n**GET / Get Deleted Card By Id**\n\n**Description:**\n\nThis request is designed to check if the deletion of a card was successful by trying to retrieve the details of a card that was previously deleted.\n\n**Steps:**\n\n- The request attempts to fetch the details of a card using its ID stored in the `randomIdCardToDelete` variable (which was set during the delete action).\n    \n\n**Tests:**\n\n- **Verify the response status is 404**: Ensures that the status code is 404, confirming the card has been successfully deleted and is no longer retrievable.\n    \n\n**GET / Get All Cards On Board After Deleted Card**\n\n- **Description:** This request fetches the list of all cards currently present on the Trello board after the card deletion.\n    \n- **Steps:**\n    \n    - The updated list of cards is fetched and compared with the previous list stored in the `cardsData` variable.\n        \n    - The global variable `cardsData` is updated to reflect the current list of cards.\n        \n- **Tests:**\n    \n    - **Verify the response status is 200**: Ensures that the status code is `200`, confirming the request was successful.\n        \n    - **One card was deleted, as expected**: Confirms that only one card was successfully deleted by comparing the number of cards before and after the deletion."
+		},
+		{
+			"name": "Archive Card",
+			"item": [
+				{
+					"name": "Archive Card by Id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder - Archive Card\r",
+									"console.log(\"Starting folder execution - Archive Card...\");\r",
+									"\r",
+									"// Step 1: Fetch data from 'cardsData' and select a random card to delete\r",
+									"let cardsDataString = pm.globals.get(\"cardsData\");  // Fetch data from cardsData\r",
+									"let cardsData = JSON.parse(cardsDataString);  // Parse the JSON data into an array\r",
+									"console.log(\"Step 1: Current card list from 'cardsData':\", cardsData);\r",
+									"\r",
+									"// Generate random index and get random card ID to delete\r",
+									"const randomIndex = Math.floor(Math.random() * cardsData.length);  // Generate random index\r",
+									"const randomIdCardToArchive = cardsData[randomIndex].id;  // Get ID from the selected card\r",
+									"console.log(\"Step 1: Random card ID selected for deletion:\", randomIdCardToArchive);\r",
+									"\r",
+									"// Store the ID of the card to delete for later use\r",
+									"pm.globals.set('randomIdCardToArchive', randomIdCardToArchive);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Log response time\r",
+									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"closed\": \"true\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/1/cards/{{randomIdCardToArchive}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"cards",
+								"{{randomIdCardToArchive}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Archived Card By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Test if response is valid JSON (no test here, just log)\r",
+									"const response = pm.response.json();\r",
+									"console.log(\"Step 2: Response body:\", response);\r",
+									"\r",
+									"// Step 3: Verify if the response contains \"closed\": true\r",
+									"pm.test('Card was archived, as expected', function () {\r",
+									"    pm.expect(response).to.have.property(\"closed\", true);\r",
+									"    console.log('Step 3: Card was archived as expected');\r",
+									"});\r",
+									"\r",
+									"// Step 4: Log response time for diagnostic purposes (last step)\r",
+									"console.log(\"Step 4: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/cards/{{randomIdCardToArchive}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"cards",
+								"{{randomIdCardToArchive}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Archived Cards On Board After Archived Card",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Process cards from the board response and populate updatedCardsData\r",
+									"let updatedCardsData = [];\r",
+									"let boardResponse = pm.response.json(); // Assuming the response is JSON\r",
+									"let cardCount = 0;\r",
+									"\r",
+									"if (Array.isArray(boardResponse) && boardResponse.length > 0) {\r",
+									"    cardCount = boardResponse.length;\r",
+									"    boardResponse.forEach(card => {\r",
+									"        updatedCardsData.push({\r",
+									"            id: card.id,\r",
+									"            name: card.name,\r",
+									"            position: card.pos, // Assuming 'pos' is the position of the card\r",
+									"            listId: card.idList // Assuming 'idList' is the ID of the list the card belongs to\r",
+									"        });\r",
+									"    });\r",
+									"} else {\r",
+									"    console.log(\"Step 2: No cards found on the board.\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Set updatedCardsData as a global variable\r",
+									"pm.globals.set(\"updatedCardsData\", JSON.stringify(updatedCardsData));\r",
+									"console.log(\"Step 3: updatedCardsData set:\", pm.globals.get(\"updatedCardsData\"));\r",
+									"\r",
+									"// Step 4: Verify if one card was deleted as expected\r",
+									"pm.test(\"One card was deleted, as expected\", function() {\r",
+									"    // Fetch the previous cards data\r",
+									"    let previousCardsDataString = pm.globals.get(\"cardsData\");\r",
+									"    let previousCardsData = previousCardsDataString ? JSON.parse(previousCardsDataString) : [];\r",
+									"\r",
+									"    // Compare the length of current data with the previous data\r",
+									"    let currentCardCount = updatedCardsData.length;\r",
+									"    let previousCardCount = previousCardsData.length;\r",
+									"\r",
+									"    // Test to check if the number of cards has decreased by 1\r",
+									"    pm.expect(currentCardCount).to.equal(previousCardCount - 1);\r",
+									"    console.log(\"Step 4: One card was deleted, as expected. Current count:\", currentCardCount, \"Previous count:\", previousCardCount);\r",
+									"});\r",
+									"\r",
+									"// Step 5: Update the global variable 'cardsData' to store the current list of cards\r",
+									"pm.globals.set(\"cardsData\", JSON.stringify(updatedCardsData));\r",
+									"console.log(\"Step 5: Updated 'cardsData' global variable.\");\r",
+									"\r",
+									"// Step 6: Log response time for diagnostic purposes\r",
+									"console.log(\"Step 6: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/boards/{{boardId}}/cards?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"boards",
+								"{{boardId}}",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the archivization of a card from a Trello board and verify that the card has been removed successfully.\n\n**PUT / Archive Card**\n\n**Description:**\n\nThis request is designed to archive a card on a Trello board. A random card ID is selected from the list of cards stored in the `cardsData` variable, and this ID is used to archive the card by updating its status to `closed: true`. The ID is stored in the global variable `randomIdCardToArchive` for future verification.\n\n**Steps:**\n\n1. A random card ID is selected from the list of cards stored in the `cardsData` variable.\n    \n2. This ID is stored in the global variable `randomIdCardToArchive` for future verification.\n    \n3. The selected card is updated with `\"closed\": true`, marking it as archived.\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures that the status code is 200, confirming the card was successfully archived.\n    \n\n**GET / Get Archived Card By Id**\n\n**Description:**\n\nThis request is designed to retrieve the details of a specific card by its ID to verify that the card has been successfully archived. After the card has been archived (its status set to `\"closed\": true`), this request checks if the card's `closed` property is indeed set to `true`, confirming the archival was successful.\n\n**Steps:**\n\n- The request attempts to fetch the details of a card using its ID stored in the `randomIdCardToArchive` variable (which was set during the delete action).\n    \n\n**Tests:**\n\n- **Verify the response status is 200**: Ensures that the status code is 200, confirming the request was successful.\n    \n- **Verify the card was archived as expected**: Checks if the card's `closed` property is set to `true`, confirming the card has been archived successfully.\n    \n\n**GET / Get All Archived Cards On Board After Archived Card**  \n**Description**: This request retrieves the list of all archived cards on the Trello board after one card has been archived. The goal is to verify if the card has been properly archived and if the remaining cards on the board match expectations.\n\nSteps:\n\n1. **Fetch the updated list of cards**: The request fetches the list of all cards on the board, including the ones that have been archived.\n    \n2. **Compare with the previous list**: The updated list is compared with the previously stored list in the global variable `cardsData`. It is expected that the number of cards will decrease by 1, as one card was archived.\n    \n3. **Update the** **`cardsData`** **global variable**: After comparison, the updated list of cards is saved in the global variable `cardsData` to reflect the current state of the board.\n    \n\n**Tests:**\n\n1. **Verify the response status**: Ensures that the status code is 200, confirming that the request was successful.\n    \n2. **One card was archived**: Confirms that only one card was archived by comparing the number of cards before and after the archiving operation."
 		},
 		{
 			"name": "Post-Test Cleanup - Delete Board",
