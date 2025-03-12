@@ -2531,6 +2531,197 @@
 			"description": "**Description:**\n\nThis folder contains a series of requests designed to test the movement of a card between lists on a Trello board and verify that the operation was completed successfully.\n\n**PUT / Move Card Between List**\n\n**Description:**  \nThis request is designed to move a card between lists on a Trello board. A random card ID is selected from the list of cards stored in the `cardsData` variable, and this ID is used to move the card to a randomly selected list.\n\n**Steps:**\n\n1. A random card ID is selected from the list of cards stored in the `cardsData` variable and saved as `randomIdCardToMove`.\n    \n2. A random list ID is selected from the available lists on the Trello board, which are stored in the `updatedBoardLists` variable, and saved as `randomListIdToMove`.\n    \n3. A random position (either \"top\" or \"bottom\") is chosen for placing the card within the new list and saved as `randomPositionToMove`.\n    \n4. A new variable, `currentIdList`, is introduced to store the original list ID of the card being moved.\n    \n\n**Tests:**\n\n1. Verify the response status is 200: Ensures that the status code is 200, confirming the card was successfully moved.\n    \n\n**GET / Get Moved Card By Id**\n\n**Description:**  \nThis request retrieves the details of a card after it has been moved to a new list. The card ID used for this request is stored in the `randomIdCardToMove` variable, which was set during the move action.\n\n**Step:**\n\n- Fetches the card details using its stored ID to verify its current state and location.\n    \n\n**Tests:**\n\n1. Verify the response status is 200: Ensures that the request was successful and the card details were retrieved.\n    \n2. Validate the card's list ID: Confirms that the card is now associated with the expected list ID, verifying that the move operation was completed correctly.\n    \n\n**GET / Get All Cards from Original List**\n\n**Description:**  \nThis request retrieves all cards from the original list where the card was moved from. It verifies that the card has been removed from the original list after the move operation.\n\n**Steps:**\n\n- Uses the stored `currentIdList` to fetch all cards from the list the card was originally in.\n    \n\n**Tests:**\n\n1. Verify the response status is 200: Ensures the request was successful.\n    \n2. Verify the moved card is not present in the original list: Confirms that the card was successfully removed from the original list after the move.\n    \n\n**GET / Get All Cards from New List**\n\n**Description:**  \nThis request retrieves all cards from the new list to which the card was moved. It ensures that the card has been added to the correct list after the move operation.\n\n**Steps:**\n\n- Uses the stored `randomIdListToMove` to fetch all cards from the list the card was moved to.\n    \n\n**Tests:**\n\n1. Verify the response status is 200: Ensures the request was successful.\n    \n2. Verify the moved card is present in the new list: Confirms that the card was successfully moved to the new list."
 		},
 		{
+			"name": "Create Checklist",
+			"item": [
+				{
+					"name": "Create Checklist On A Card",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Log: Start of Folder - Create Checklist\r",
+									"console.log(\"Starting folder execution - Create Checklist...\");\r",
+									"\r",
+									"// Step 1: Fetch data from 'cardsData' and select a random card to add checklist\r",
+									"let cardsDataString = pm.globals.get(\"cardsData\");  // Fetch data from cardsData\r",
+									"let cardsData = JSON.parse(cardsDataString);  // Parse the JSON data into an array\r",
+									"console.log(\"Step 1: Current card list from 'cardsData':\", cardsData);\r",
+									"\r",
+									"// Generate random index and get random card ID to move\r",
+									"const randomIndex = Math.floor(Math.random() * cardsData.length);  // Generate random index\r",
+									"const randomIdCardCheckbox = cardsData[randomIndex].id;  // Get ID from the selected card\r",
+									"console.log(\"Step 1: Random card ID selected for move:\", randomIdCardCheckbox);\r",
+									"\r",
+									"// Store the ID of the card to move for later use\r",
+									"pm.globals.set('randomIdCardCheckbox', randomIdCardCheckbox);\r",
+									"\r",
+									"// Step 2: Generate and store a random name for the new checklist\r",
+									"function generateRandomName(minLength, maxLength) {\r",
+									"    const prefix = \"Checklist\";  // Prefix that will always appear at the start\r",
+									"    const randomStr = Math.random().toString(36).substr(2, maxLength - prefix.length); // Generating random string after the prefix\r",
+									"    return prefix + randomStr; // Combine prefix with the random string\r",
+									"}\r",
+									"\r",
+									"const checklistName = generateRandomName(1, 25); \r",
+									"pm.globals.set('randomNameCheckbox', checklistName); \r",
+									"console.log(\"Step 2: Random checklist name generated and set successfully:\", checklistName);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\", statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let response;\r",
+									"try {\r",
+									"    response = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Set the CheckboxId global variable\r",
+									"if (response && response.id) {\r",
+									"    pm.globals.set(\"CheckboxId\", response.id);\r",
+									"    console.log(\"Step 3: Set global variable 'CheckboxId' to:\", response.id);\r",
+									"} else {\r",
+									"    console.error(\"Step 3: Response does not contain a valid checklist ID.\");\r",
+									"    pm.expect.fail(\"Step 3: Response does not contain a valid checklist ID.\");\r",
+									"}\r",
+									"\r",
+									"// Step 4: Log response time\r",
+									"console.log(\"Step 4: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{randomNameCheckbox}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/1/cards/{{randomIdCardCheckbox}}/checklists?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"cards",
+								"{{randomIdCardCheckbox}}",
+								"checklists"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Checklist By Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Step 1: Check response status code\r",
+									"pm.test(\"Response status is 200\", function () {\r",
+									"    let statusCode = pm.response.code;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Step 1: Status code is:\", statusCode);\r",
+									"});\r",
+									"\r",
+									"// Step 2: Parse the response as a JSON object\r",
+									"let response;\r",
+									"try {\r",
+									"    response = pm.response.json();\r",
+									"    console.log(\"Step 2: Parsed response as JSON:\", response);\r",
+									"} catch (error) {\r",
+									"    console.error(\"Step 2: Failed to parse response as JSON:\", error);\r",
+									"    pm.expect.fail(\"Step 2: Response is not valid JSON\");\r",
+									"}\r",
+									"\r",
+									"// Step 3: Retrieve the expected checklist name from global variables\r",
+									"const expectedChecklistName = pm.globals.get(\"randomNameCheckbox\");\r",
+									"console.log(\"Step 3: Expected checklist name:\", expectedChecklistName);\r",
+									"\r",
+									"// Step 4: Verify the checklist name matches the expected name\r",
+									"pm.test(`The checklist name from the response matches the given name`, function () {\r",
+									"    const actualChecklistName = response.name;\r",
+									"    pm.expect(actualChecklistName).to.equal(expectedChecklistName);\r",
+									"    console.log(\"Step 4: Actual checklist name in response:\", actualChecklistName);\r",
+									"});\r",
+									"\r",
+									"// Step 5: Log response time\r",
+									"console.log(\"Step 5: Response time:\", pm.response.responseTime + \"ms\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/1/checklists/{{CheckboxId}}?key={{key}}&token={{token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"1",
+								"checklists",
+								"{{CheckboxId}}"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{key}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Post-Test Cleanup - Delete Board",
 			"item": [
 				{
@@ -2604,11 +2795,19 @@
 									"pm.test(\"Response status is 404\", function () {\r",
 									"    let statusCode = pm.response.code;\r",
 									"    pm.response.to.have.status(404);\r",
-									"    console.log(\"Step 1: Status code is:\" + statusCode);\r",
+									"    console.log(\"Step 1: Status code is: \" + statusCode);\r",
 									"});\r",
 									"\r",
 									"// Step 2: Log response time\r",
-									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");"
+									"console.log(\"Step 2: Response time:\", pm.response.responseTime + \"ms\");\r",
+									"\r",
+									"// Step 3: Initialize collection variables with initial values\r",
+									"pm.collectionVariables.set('lists_folder_iteration_number', 5);\r",
+									"pm.collectionVariables.set('cards_folder_iteration_number', 5);\r",
+									"\r",
+									"// Log the initialization\r",
+									"console.log(\"Step 3: Collection variables initialized with value 5.\");\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
